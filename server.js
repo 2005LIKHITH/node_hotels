@@ -6,7 +6,18 @@ const Person = require('./Models/Person'); // Import the Person model
 const Menu = require('./Models/Menu'); // Import the Menu model
 const Task = require('./Models/Task'); // Import the Task model
 const app = express();
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+
 app.use(bodyParser.json());
+
+//Middle Ware Function
+const logRequest = (req,res,next)=>{
+    console.log(`[${new Date().toLocaleString()} Request made to ${req.url}]`);
+    next();
+}
+
+
 
 // Home route
 app.get("/task",async (req, res) => {
@@ -30,7 +41,9 @@ app.post("/task", async (req, res) => {
         res.status(500).json({ err: "Internal Server Error" });
     }
 })
-app.get("/", (req, res) => {
+
+app.use(logRequest);
+app.get("/", async (req, res) => {
     res.send("Hello World!");
 });
 
@@ -43,6 +56,7 @@ const personRoutes = require('./routes/personRoutes');
 app.use('/person', personRoutes);
 const menuRoutes = require('./routes/menuRoutes');
 const router = require("./routes/personRoutes");
+const { log } = require("console");
 app.use('/menu', menuRoutes);
 // Start the server
 app.listen(3000, () => {
