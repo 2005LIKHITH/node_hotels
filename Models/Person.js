@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-
+const bcrypt = require('bcryptjs');
 
 const personSchema = new mongoose.Schema({
     name:{
@@ -41,6 +41,35 @@ const personSchema = new mongoose.Schema({
         required:true
     }
 });
+
+personSchema.pre('save', async function(next){
+    try{
+        //hash password generate
+        const person = this;
+        if(!person.isModified('password'))return next();
+
+        try{
+            const salt = await bcrypt.genSalt(10);
+            const hash = await bcrypt.hash(person.password,salt);
+            person.password = hash;
+        }catch(err){
+            return next(err);
+        }
+        next();
+    }catch(err){
+        return next(err);
+    }
+    
+})
+
+personSchema.methods.comparePassword = async function(candidatePassword){
+    try{
+        return await bcrypt.compare(candidatePassword,this.password);
+    }catch(err){
+        // return false;
+        throw err;
+    }
+}
 
 const Person = mongoose.model('Person',personSchema);
 module.exports = Person
